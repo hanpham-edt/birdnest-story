@@ -1,17 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Search,
-  Filter,
-  Eye,
-  Edit,
-  Trash2,
-  Plus,
-  XCircle,
-  Tags,
-} from "lucide-react";
+import { Search, Eye, Edit, Trash2, Plus, XCircle } from "lucide-react";
 import Link from "next/link";
+// import { categories } from "@/lib/data";
 
 // Define interfaces for type safety
 interface Category {
@@ -25,56 +17,56 @@ interface Category {
 const categories: Category[] = [
   {
     id: "1",
-    name: "Yến thô",
-    slug: "yen-tho",
-    description: "Là loại yến chưa qua quá trình xử lý",
-  },
-  {
-    id: "2",
     name: "Yến tinh chế",
     slug: "yen-tinh che",
-    description: "0987654321",
+    description: "0123456789",
   },
   {
-    id: "3",
-    name: "Yến rút lông",
-    slug: "yen-rut-long",
-    description: "0555666777",
+    id: "1",
+    name: "Nguyễn Thị Anh",
+    slug: "anh.nguyen@email.com",
+    description: "0123456789",
+  },
+  {
+    id: "1",
+    name: "Nguyễn Thị Anh",
+    slug: "anh.nguyen@email.com",
+    description: "0123456789",
   },
 ];
 
-export default function AdminCategoryPage() {
+export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
 
-  const filteredCategories = categories.filter((category) => {
-    const matchesSearch =
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = categories.filter((categories) => {
+    const matchesSearch = categories.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
     return matchesSearch;
   });
 
-  const handleDelete = (categoryId: string) => {
-    setCategoryToDelete(categoryId);
+  const handleDelete = (userId: string) => {
+    setCategoryToDelete(userId);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = () => {
-    // In real app, this would call API to delete category
-    console.log("Deleting category:", categoryToDelete);
+    // In real app, this would call API to delete user
+    console.log("Deleting Danh Mục:", categoryToDelete);
     setShowDeleteModal(false);
     setCategoryToDelete(null);
   };
 
-  const handleViewCategory = (category: Category) => {
-    setSelectedCategory(category);
-    setShowCategoryModal(true);
+  const handleViewUser = (categories: Category) => {
+    setSelectedCategory(categories);
+    setShowUserModal(true);
   };
 
   return (
@@ -85,14 +77,12 @@ export default function AdminCategoryPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               Quản lý danh mục
             </h1>
-            <p className="text-gray-600">
-              Quản lý tất cả danh mục trong hệ thống
-            </p>
+            <p className="text-gray-600">Quản lý tất cả danh mục</p>
           </div>
           <Link href="/admin/categories/new">
             <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
               <Plus className="h-4 w-4 mr-2" />
-              Thêm danh mục
+              Thêm danh mục mới
             </button>
           </Link>
         </div>
@@ -116,21 +106,14 @@ export default function AdminCategoryPage() {
               />
             </div>
           </div>
-
-          <div className="flex items-end">
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors flex items-center justify-center">
-              <Filter className="h-4 w-4 mr-2" />
-              Lọc
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Categories Table */}
+      {/* Users Table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
-            Người dùng ({filteredCategories.length})
+            Danh mục ({filteredUsers.length})
           </h3>
         </div>
 
@@ -141,54 +124,50 @@ export default function AdminCategoryPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tên danh mục
                 </th>
+
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Slug
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mô tả
                 </th>
+
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCategories.map((category) => (
-                <tr key={category.id} className="hover:bg-gray-50">
+              {filteredUsers.map((categories) => (
+                <tr key={categories.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Tags className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {category.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {category.slug}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {category.description}
-                        </div>
-                      </div>
-                    </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {categories.name}
+                    </td>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {categories.slug}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {categories.description}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
                       <button
-                        onClick={() => handleViewCategory(category)}
+                        onClick={() => handleViewUser(categories)}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <Link href={`/admin/categories/${category.id}/edit`}>
+                      <Link href={`/admin/users/${categories.id}/edit`}>
                         <button className="text-orange-600 hover:text-orange-900">
                           <Edit className="h-4 w-4" />
                         </button>
                       </Link>
                       <button
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDelete(categories.id)}
                         className="text-red-600 hover:text-red-900"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -203,15 +182,15 @@ export default function AdminCategoryPage() {
       </div>
 
       {/* User Detail Modal */}
-      {showCategoryModal && selectedCategory && (
+      {showUserModal && selectedCategory && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">
-                Chi tiết danh mục
+                Chi tiết Danh mục
               </h3>
               <button
-                onClick={() => setShowCategoryModal(false)}
+                onClick={() => setShowUserModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <XCircle className="h-6 w-6" />
@@ -220,9 +199,6 @@ export default function AdminCategoryPage() {
 
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                  <Tags className="h-8 w-8 text-white" />
-                </div>
                 <div>
                   <h4 className="text-lg font-medium text-gray-900">
                     {selectedCategory.name}
@@ -230,16 +206,13 @@ export default function AdminCategoryPage() {
                   <p className="text-gray-500">{selectedCategory.slug}</p>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Mô tả
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {selectedCategory.description}
-                  </p>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Mô tả danh mục
+                </label>
+                <p className="text-sm text-gray-900">
+                  {selectedCategory.description}
+                </p>
               </div>
             </div>
           </div>
@@ -259,8 +232,8 @@ export default function AdminCategoryPage() {
               </h3>
               <div className="mt-2 px-7 py-3">
                 <p className="text-sm text-gray-500">
-                  Bạn có chắc chắn muốn xóa danh mục nảy? Hành động này không
-                  thể hoàn tác.
+                  Bạn có chắc chắn muốn xóa danh mục này này? Hành động này
+                  không thể hoàn tác.
                 </p>
               </div>
               <div className="flex items-center justify-center space-x-4 mt-4">
