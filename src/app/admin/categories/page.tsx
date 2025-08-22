@@ -1,72 +1,81 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Eye, Edit, Trash2, Plus, XCircle } from "lucide-react";
 import Link from "next/link";
-// import { categories } from "@/lib/data";
-
 // Define interfaces for type safety
-interface Category {
+type Category = {
   id: string;
   name: string;
   slug: string;
   description: string;
-}
+};
 
-// Mock users data
-const categories: Category[] = [
-  {
-    id: "1",
-    name: "Yến tinh chế",
-    slug: "yen-tinh che",
-    description: "0123456789",
-  },
-  {
-    id: "1",
-    name: "Nguyễn Thị Anh",
-    slug: "anh.nguyen@email.com",
-    description: "0123456789",
-  },
-  {
-    id: "1",
-    name: "Nguyễn Thị Anh",
-    slug: "anh.nguyen@email.com",
-    description: "0123456789",
-  },
-];
-
-export default function AdminUsersPage() {
+const emptyCategory: Partial<Category> = {
+  name: "",
+  slug: "",
+  description: "",
+};
+export default function AdminCategoryPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  //const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-  const [showUserModal, setShowUserModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  // const [form, setForm] = useState<Partial<Category>>(emptyCategory);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
 
-  const filteredUsers = categories.filter((categories) => {
-    const matchesSearch = categories.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  // Lấy danh sách danh mục tu API
+  const fetchCategories = async (q = "") => {
+    //setLoading(true);
+    try {
+      const res = await fetch(`/api/categories?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      setCategories(data);
+    } catch (e) {
+      setError("Không thể tải dữ liệu danh mục");
+    } finally {
+      //setLoading(false);
+    }
+  };
 
-    return matchesSearch;
-  });
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  const handleDelete = (userId: string) => {
-    setCategoryToDelete(userId);
+  // Tìm kiếm real-time
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchCategories(searchTerm);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const handleDelete = (categoryId: string) => {
+    setCategoryToDelete(categoryId);
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    // In real app, this would call API to delete user
-    console.log("Deleting Danh Mục:", categoryToDelete);
+  const confirmDelete = async () => {
+    // In real app, this would call API to delete category
+
+    try {
+      await fetch(`/api/categories/${categoryToDelete}`, { method: "DELETE" });
+      fetchCategories(searchTerm);
+    } catch (error) {
+      setError("Không thể xóa danh mục");
+    }
+
     setShowDeleteModal(false);
     setCategoryToDelete(null);
   };
 
   const handleViewUser = (categories: Category) => {
     setSelectedCategory(categories);
-    setShowUserModal(true);
+    setShowCategoryModal(true);
   };
 
   return (
@@ -109,11 +118,11 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Users Table */}
+      {/* Category Table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
-            Danh mục ({filteredUsers.length})
+            Danh mục ({categories.length})
           </h3>
         </div>
 
@@ -138,36 +147,34 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((categories) => (
-                <tr key={categories.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {categories.name}
-                    </td>
+              {categories.map((category) => (
+                <tr key={category.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {category.name}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {categories.slug}
+                    {category.slug}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {categories.description}
+                    {category.description}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
                       <button
-                        onClick={() => handleViewUser(categories)}
+                        onClick={() => handleViewUser(category)}
                         className="text-blue-600 hover:text-blue-900"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <Link href={`/admin/users/${categories.id}/edit`}>
+                      <Link href={`/admin/categories/${category.id}/edit`}>
                         <button className="text-orange-600 hover:text-orange-900">
                           <Edit className="h-4 w-4" />
                         </button>
                       </Link>
                       <button
-                        onClick={() => handleDelete(categories.id)}
+                        onClick={() => handleDelete(category.id)}
                         className="text-red-600 hover:text-red-900"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -181,8 +188,8 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* User Detail Modal */}
-      {showUserModal && selectedCategory && (
+      {/* Category Detail Modal */}
+      {showCategoryModal && selectedCategory && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
             <div className="flex items-center justify-between mb-4">
@@ -190,7 +197,7 @@ export default function AdminUsersPage() {
                 Chi tiết Danh mục
               </h3>
               <button
-                onClick={() => setShowUserModal(false)}
+                onClick={() => setShowCategoryModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <XCircle className="h-6 w-6" />

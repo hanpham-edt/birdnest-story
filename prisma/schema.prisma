@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  //output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -124,6 +123,7 @@ model users {
   address       String?
   role          String?         @default("customer") @db.VarChar(20)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  status        String?         @db.VarChar
   cart_items    cart_items[]
   coupon_usages coupon_usages[]
   orders        orders[]

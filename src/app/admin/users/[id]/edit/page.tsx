@@ -1,23 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, User, Mail, Phone, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function NewUserPage() {
+  //const [formData, setFormData] = useState<Partial<Category>>(emptyCategory);
   const router = useRouter();
+  const params = useParams();
+  const { id } = params;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
+    phone: "",
     address: "",
     role: "customer",
     status: "active",
   });
+  const fetchUsers = async () => {
+    const res = await fetch(`/api/users/${id}`, { method: "GET" });
+    const data = await res.json();
+    console.log(data);
+    setFormData(data);
+  };
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -92,11 +104,11 @@ export default function NewUserPage() {
     setIsSubmitting(true);
 
     // In real app, this would call API to create user
-    //console.log("Creating user:", formData);
+    // console.log("Creating user:", formData);
 
     // Simulate API call
-    await fetch("/api/users", {
-      method: "POST",
+    await fetch(`/api/users/${id}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });

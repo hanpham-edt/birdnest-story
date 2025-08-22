@@ -1,20 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, Tags } from "lucide-react";
 import Link from "next/link";
 
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+};
+const emptyCategory: Partial<Category> = {
+  name: "",
+  slug: "",
+  description: "",
+};
 export default function NewCategoryPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-  });
-
+  const [formData, setFormData] = useState<Partial<Category>>(emptyCategory);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const router = useRouter();
+  const params = useParams();
+  const { id } = params;
+
+  const fetchCategories = async () => {
+    const res = await fetch(`/api/categories/${id}`, { method: "GET" });
+    const data = await res.json();
+    setFormData(data);
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -27,7 +45,6 @@ export default function NewCategoryPage() {
       [name]: value,
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -56,13 +73,13 @@ export default function NewCategoryPage() {
 
     setIsSubmitting(true);
 
-    // In real app, this would call API to create user
-    console.log("Creating category:", formData);
+    // In real app, this would call API to create category
+    // console.log("Creating category:", formData);
 
     // Simulate API call
     //await new Promise((resolve) => setTimeout(resolve, 1000));
-    await fetch("/api/categories", {
-      method: "POST",
+    await fetch(`/api/categories/${id}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
@@ -70,37 +87,6 @@ export default function NewCategoryPage() {
     setIsSubmitting(false);
     router.push("/admin/categories");
   };
-
-  // Xử lý submit form
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!form.name) return;
-
-  //   try {
-  //     const formData = {
-  //       ...form,
-  //       slug: form.slug || generateSlug(form.name)
-  //     };
-
-  //     if (formType === "add") {
-  //       await fetch("/api/categories", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify(formData),
-  //       });
-  //     } else if (formType === "edit" && form.id) {
-  //       await fetch(`/api/categories/${form.id}`, {
-  //         method: "PUT",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify(formData),
-  //       });
-  //     }
-  //     setShowForm(false);
-  //     fetchCategories(search);
-  //   } catch (error) {
-  //     setError("Không thể lưu danh mục");
-  //   }
-  // };
 
   return (
     <div>
@@ -175,9 +161,6 @@ export default function NewCategoryPage() {
                     placeholder="Nhập slug"
                   />
                 </div>
-                {errors.slug && (
-                  <p className="mt-1 text-sm text-red-600">{errors.slug}</p>
-                )}
               </div>
 
               <div>

@@ -1,124 +1,102 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
   Plus,
   User,
-  XCircle
-} from 'lucide-react';
-import Link from 'next/link';
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
 
 // Define interfaces for type safety
-interface User {
+type User = {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: 'customer' | 'admin';
-  status: 'active' | 'inactive';
-  createdAt: string;
-  lastLogin: string;
-  totalOrders: number;
-  totalSpent: number;
-}
+  address: string;
+  role: string | null;
+  //avatar_url: string | null;
+  created_at: string;
+  status: string;
+  //updated_at: string | null;
+};
 
 // Mock users data
-const users: User[] = [
-  {
-    id: '1',
-    name: 'Nguyễn Thị Anh',
-    email: 'anh.nguyen@email.com',
-    phone: '0123456789',
-    role: 'customer',
-    status: 'active',
-    createdAt: '2024-01-01',
-    lastLogin: '2024-01-15',
-    totalOrders: 5,
-    totalSpent: 12500000
-  },
-  {
-    id: '2',
-    name: 'Trần Văn Bình',
-    email: 'binh.tran@email.com',
-    phone: '0987654321',
-    role: 'customer',
-    status: 'active',
-    createdAt: '2024-01-05',
-    lastLogin: '2024-01-14',
-    totalOrders: 3,
-    totalSpent: 6800000
-  },
-  {
-    id: '3',
-    name: 'Lê Thị Cẩm',
-    email: 'cam.le@email.com',
-    phone: '0555666777',
-    role: 'customer',
-    status: 'active',
-    createdAt: '2024-01-10',
-    lastLogin: '2024-01-13',
-    totalOrders: 2,
-    totalSpent: 2800000
-  },
-  {
-    id: '4',
-    name: 'Admin User',
-    email: 'admin@yensaopremium.com',
-    phone: '0333444555',
-    role: 'admin',
-    status: 'active',
-    createdAt: '2023-12-01',
-    lastLogin: '2024-01-15',
-    totalOrders: 0,
-    totalSpent: 0
-  },
-  {
-    id: '5',
-    name: 'Phạm Văn Dũng',
-    email: 'dung.pham@email.com',
-    phone: '0333444555',
-    role: 'customer',
-    status: 'inactive',
-    createdAt: '2024-01-12',
-    lastLogin: '2024-01-10',
-    totalOrders: 1,
-    totalSpent: 1800000
-  }
-];
+// const users: User[] = [
+//   {
+//     id: "1",
+//     name: "Nguyễn Thị Anh",
+//     email: "anh.nguyen@email.com",
+//     phone: "0123456789",
+//     role: "customer",
+//     status: "active",
+//     createdAt: "2024-01-01",
+//     lastLogin: "2024-01-15",
+//     totalOrders: 5,
+//     totalSpent: 12500000,
+//   },
+//   {
 
 const roleOptions = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'customer', label: 'Khách hàng' },
-  { value: 'admin', label: 'Quản trị viên' }
+  { value: "all", label: "Tất cả" },
+  { value: "customer", label: "Khách hàng" },
+  { value: "admin", label: "Quản trị viên" },
 ];
 
 const statusOptions = [
-  { value: 'all', label: 'Tất cả' },
-  { value: 'active', label: 'Hoạt động' },
-  { value: 'inactive', label: 'Không hoạt động' }
+  { value: "all", label: "Tất cả" },
+  { value: "active", label: "Hoạt động" },
+  { value: "inactive", label: "Không hoạt động" },
 ];
 
 export default function AdminUsersPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const fetchUsers = async (q = "") => {
+    ///setLoading(true);
+    try {
+      const res = await fetch(`/api/users?q=${q}`);
+      const data = await res.json();
+      setUsers(data);
+    } catch (e) {
+      // setError("Không thể tải dữ liệu người dùng");
+    } finally {
+      //setLoading(false);
+    }
+  };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Tìm kiếm real-time
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchUsers(searchTerm);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.phone.includes(searchTerm);
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
+    const matchesRole = selectedRole === "all" || user.role === selectedRole;
+    const matchesStatus =
+      selectedStatus === "all" || user.status === selectedStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -127,9 +105,15 @@ export default function AdminUsersPage() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     // In real app, this would call API to delete user
-    console.log('Deleting user:', userToDelete);
+    //console.log("Deleting user:", userToDelete);
+    try {
+      await fetch(`/api/users/${userToDelete}`, { method: "DELETE" });
+      fetchUsers(searchTerm);
+    } catch (error) {
+      setError("Không thể xóa users nay");
+    }
     setShowDeleteModal(false);
     setUserToDelete(null);
   };
@@ -140,14 +124,14 @@ export default function AdminUsersPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   return (
@@ -155,8 +139,12 @@ export default function AdminUsersPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
-            <p className="text-gray-600">Quản lý tất cả người dùng trong hệ thống</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Quản lý người dùng
+            </h1>
+            <p className="text-gray-600">
+              Quản lý tất cả người dùng trong hệ thống
+            </p>
           </div>
           <Link href="/admin/users/new">
             <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center">
@@ -236,7 +224,7 @@ export default function AdminUsersPage() {
             Người dùng ({filteredUsers.length})
           </h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -286,31 +274,37 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.role === "admin"
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {user.role === "admin" ? "Quản trị viên" : "Khách hàng"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {user.status === "active"
+                        ? "Hoạt động"
+                        : "Không hoạt động"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.totalOrders}
+                    {/* // {user.totalOrders} */}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatPrice(user.totalSpent)}
+                    {/* {formatPrice(user.totalSpent)} */}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(user.createdAt)}
+                    {formatDate(user.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
@@ -355,50 +349,78 @@ export default function AdminUsersPage() {
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                   <User className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900">{selectedUser.name}</h4>
+                  <h4 className="text-lg font-medium text-gray-900">
+                    {selectedUser.name}
+                  </h4>
                   <p className="text-gray-500">{selectedUser.email}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Số điện thoại
+                  </label>
                   <p className="text-sm text-gray-900">{selectedUser.phone}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Vai trò</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Vai trò
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {selectedUser.role === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
+                    {selectedUser.role === "admin"
+                      ? "Quản trị viên"
+                      : "Khách hàng"}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Trạng thái
+                  </label>
                   <p className="text-sm text-gray-900">
-                    {selectedUser.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
+                    {selectedUser.status === "active"
+                      ? "Hoạt động"
+                      : "Không hoạt động"}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Ngày tham gia</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedUser.createdAt)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ngày tham gia
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {formatDate(selectedUser.created_at)}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Đăng nhập cuối</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedUser.lastLogin)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Đăng nhập cuối
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {formatDate(selectedUser.lastLogin)}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Tổng đơn hàng</label>
-                  <p className="text-sm text-gray-900">{selectedUser.totalOrders}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tổng đơn hàng
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {selectedUser.totalOrders}
+                  </p>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Tổng chi tiêu</label>
-                  <p className="text-lg font-medium text-gray-900">{formatPrice(selectedUser.totalSpent)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tổng chi tiêu
+                  </label>
+                  <p className="text-lg font-medium text-gray-900">
+                    {formatPrice(selectedUser.totalSpent)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -419,7 +441,8 @@ export default function AdminUsersPage() {
               </h3>
               <div className="mt-2 px-7 py-3">
                 <p className="text-sm text-gray-500">
-                  Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
+                  Bạn có chắc chắn muốn xóa người dùng này? Hành động này không
+                  thể hoàn tác.
                 </p>
               </div>
               <div className="flex items-center justify-center space-x-4 mt-4">
@@ -442,4 +465,4 @@ export default function AdminUsersPage() {
       )}
     </div>
   );
-} 
+}
